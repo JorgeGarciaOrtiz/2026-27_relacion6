@@ -30,6 +30,7 @@ function cabecera() {}
 function cuerpo()
 {
 ?>
-    <a href="./aplicacion/practicas">Ejercicios</a>
+    <a href="./index.php">Inicio</a>
+    <a href="./aplicacion/">Tienda</a>
 <?php
 }
