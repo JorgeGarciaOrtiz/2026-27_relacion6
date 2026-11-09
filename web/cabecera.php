@@ -20,3 +20,4 @@ spl_autoload_register(function ($clase) {
 });
 
 include(RUTABASE . "/aplicacion/plantilla/plantilla.php");
+include(RUTABASE . "/scripts/librerias/validacion.php");
