@@ -32,6 +32,6 @@ function cuerpo()
 ?>
     <a href="./index.php">Inicio</a>
     <br>
-    <a href="">Tienda</a>
+    <a href="./aplicacion/principal/pruebas.php">Pruebas</a>
 <?php
 }

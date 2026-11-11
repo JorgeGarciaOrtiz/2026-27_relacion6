@@ -6,14 +6,14 @@
 abstract class MuebleBase
 {
     // ------------------------------------------------
-    // Constantes
+    // Constante
     // ------------------------------------------------
 
     // Número máximo de muebles que se pueden crear
     const MAXIMO_MUEBLES = 100;
 
     // ------------------------------------------------
-    // Variables de clase
+    // Variable de clase
     // ------------------------------------------------
 
     // Número de muebles creados hasta el momento
@@ -43,6 +43,9 @@ abstract class MuebleBase
 
     // Precio del mueble
     private float $_precio = 30;
+
+    // Caracteristicas del mueble
+    private Caracteristicas $_caracteristicas;
 
     // ------------------------------------------------
     // Constructor
@@ -110,6 +113,9 @@ abstract class MuebleBase
             $this->setPrecio(30);
         }
 
+        // Creo el objeto donde se guardarán las características
+        $this->_caracteristicas = new Caracteristicas();
+
         // Sumo uno al contador de muebles creados
         self::$_mueblesCreados++;
     }
@@ -136,8 +142,9 @@ abstract class MuebleBase
      */
     public static function puedeCrear(int &$numero): bool
     {
-        // Si se ha llegado al máximo de muebles, no se pueden crear más
+        // Si se ha llegado al máximo de muebles no se pueden crear más
         if (self::MAXIMO_MUEBLES <= self::$_mueblesCreados) {
+            // El número de muebles que se pueden crear es de cero
             $numero = 0;
             return false;
         }
@@ -148,12 +155,32 @@ abstract class MuebleBase
         return true;
     }
 
+    /**
+     * Añade características al mueble recibiendo pares de nombre y valor.
+     * Si el número de argumentos es impar, se descarta el último
+     *
+     * @param mixed ...$argumentos Pares de nombre de la característica y su valor
+     * @return void
+     */
+    public function anadirCaracteristicas(mixed ...$argumentos): void
+    {
+        // Si el número de argumentos es impar, quito el último
+        if (count($argumentos) % 2 !== 0) {
+            array_pop($argumentos);
+        }
+
+        // Recorro los argumentos de 2 en 2 y añado cada característica
+        for ($i = 0; $i < count($argumentos); $i += 2) {
+            $this->_caracteristicas->{$argumentos[$i]} = $argumentos[$i + 1];
+        }
+    }
+
     // ------------------------------------------------
     // Método toString
     // ------------------------------------------------
 
     /**
-     * Método que al convertir la instancia en cadena devuelve la información del mueble.
+     * Método que devuelve la información del mueble
      *
      * @return string Cadena con los datos del mueble
      */
@@ -166,7 +193,8 @@ abstract class MuebleBase
             " a partir del año " . $this->_anio .
             ", vendido desde " . $this->_fechaIniVenta .
             " hasta " . $this->_fechaFinVenta .
-            ", precio " . $this->_precio;
+            ", precio " . $this->_precio . 
+            ", características: " . $this->_caracteristicas;
     }
 
     // ------------------------------------------------
@@ -243,18 +271,29 @@ abstract class MuebleBase
         return $this->_precio;
     }
 
+    /**
+     * Devuelve todas las caracteristicas
+     *
+     * @return Caracteristicas Objeto con las características del mueble
+     */
+    public function getCaracteristicas(): Caracteristicas
+    {
+        return $this->_caracteristicas;
+    }
+
     // ------------------------------------------------
     // Métodos set
     // ------------------------------------------------
 
     /**
      * Guarda el nombre del mueble si no está vacío y no pasa de 40 caracteres, y lo pone en mayúsculas
+     * 
      * @param string $nombre Nombre del mueble
      * @return boolean True si se ha guardado y false si no
      */
     public function setNombre(string $nombre): bool
     {
-        // Compruebo que no pase de 40 caracteres y que no esté vacío
+        // Si el nombre no pasa de 40 caracteres y no esta vacío:
         if ((validaCadena($nombre, 40, "")) && (mb_strlen($nombre, 'UTF-8') > 0)) {
             // Lo guardo en mayúsculas
             $this->_nombre = mb_strtoupper($nombre);
@@ -266,6 +305,7 @@ abstract class MuebleBase
 
     /**
      * Guarda el fabricante, le añade "FaMu:" delante si no lo tiene y lo corta a 30 caracteres
+     * 
      * @param string $fabricante Fabricante del mueble
      * @return boolean Siempre true
      */
@@ -293,12 +333,13 @@ abstract class MuebleBase
 
     /**
      * Guarda el país si no pasa de 20 caracteres
+     * 
      * @param string $pais País de fabricación
      * @return boolean True si se ha guardado y false si no
      */
     public function setPais(string $pais): bool
     {
-        // Compruebo que no pase de 20 caracteres
+        // Si el país no pasa de 20 caracteres:
         if (validaCadena($pais, 20, "ESPAÑA")) {
             // Guardo el país
             $this->_pais = $pais;
@@ -310,12 +351,13 @@ abstract class MuebleBase
 
     /**
      * Guarda el año de inicio de fabricación si está entre 2020 y el año actual
+     * 
      * @param integer $anio Año de inicio de fabricación
      * @return boolean True si se ha guardado y false si no
      */
     public function setAnio(int $anio): bool
     {
-        // Compruebo que esté entre 2020 y el año actual
+        // Si el año está entre 2020 y el año actual:
         if (validaEntero($anio, 2020, (int) date('Y'), 2020)) {
             // Guardo el año
             $this->_anio = $anio;
@@ -327,19 +369,20 @@ abstract class MuebleBase
 
     /**
      * Guarda la fecha de inicio de venta si es una fecha válida y no es anterior al 01/01 del año de fabricación
+     * 
      * @param string $fechaIniVenta Fecha de inicio de venta
      * @return boolean True si se ha guardado y false si no
      */
     public function setFechaIniVenta(string $fechaIniVenta): bool
     {
-        // Compruebo que sea una fecha válida
+        // Si la fecha es valida:
         if (validaFecha($fechaIniVenta, "01/01/2020")) {
 
             // Paso las dos fechas a DateTime para poder compararlas
             $anioFabricacion = DateTime::createFromFormat('!d/m/Y', '01/01/' . $this->_anio);
             $fechaInicioVenta = DateTime::createFromFormat('!d/m/Y', $fechaIniVenta);
 
-            // La fecha de venta no puede ser anterior a la de fabricación
+            // Si la fecha de venta no es anterior a la de fabricación:
             if ($anioFabricacion <= $fechaInicioVenta) {
                 // Guardo la fecha de inicio de venta
                 $this->_fechaIniVenta = $fechaIniVenta;
@@ -352,19 +395,20 @@ abstract class MuebleBase
 
     /**
      * Guarda la fecha de fin de venta si es una fecha válida y no es anterior a la fecha de inicio de venta
+     * 
      * @param string $fechaFinVenta Fecha de fin de venta
      * @return boolean True si se ha guardado y false si no
      */
     public function setFechaFinVenta(string $fechaFinVenta): bool
     {
-        // Compruebo que sea una fecha válida
+        // Si la fecha es valida:
         if (validaFecha($fechaFinVenta, "31/12/2040")) {
 
             // Paso las dos fechas a DateTime para poder compararlas
             $fechaInicialVenta = DateTime::createFromFormat('!d/m/Y', $this->_fechaIniVenta);
             $fechaFinalVenta = DateTime::createFromFormat('!d/m/Y', $fechaFinVenta);
 
-            // La fecha de fin no puede ser anterior a la de inicio
+            // Si la fecha de fin no es anterior a la de inicio:
             if ($fechaInicialVenta <= $fechaFinalVenta) {
                 // Guardo la fecha de fin de venta
                 $this->_fechaFinVenta = $fechaFinVenta;
@@ -377,12 +421,13 @@ abstract class MuebleBase
 
     /**
      * Guarda el precio del mueble si no es menor de 30
+     * 
      * @param float $precio Precio del mueble
      * @return boolean True si se ha guardado y false si no
      */
     public function setPrecio(float $precio): bool
     {
-        // Compruebo que no sea menor de 30
+        // Si el precio no es menor que 30:
         if ($precio >= 30) {
             // Guardo el precio
             $this->_precio = $precio;
@@ -398,6 +443,7 @@ abstract class MuebleBase
 
     /**
      * Impide crear propiedades nuevas que no existen en la clase
+     * 
      * @param string $nombre Nombre de la propiedad
      * @param mixed $valor Valor que se intenta asignar
      * @return void
@@ -410,6 +456,7 @@ abstract class MuebleBase
 
     /**
      * Impide leer propiedades que no existen o no son accesibles
+     * 
      * @param string $nombre Nombre de la propiedad
      * @return mixed
      */
@@ -421,6 +468,7 @@ abstract class MuebleBase
 
     /**
      * Indica que no existe ninguna propiedad dinámica
+     * 
      * @param string $nombre Nombre de la propiedad
      * @return boolean Siempre false
      */
@@ -431,6 +479,7 @@ abstract class MuebleBase
 
     /**
      * Impide borrar propiedades que no existen o no son accesibles
+     * 
      * @param string $nombre Nombre de la propiedad
      * @return void
      */
