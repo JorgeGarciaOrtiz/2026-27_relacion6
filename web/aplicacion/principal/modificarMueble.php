@@ -4,6 +4,13 @@
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 include_once(RUTABASE . "/aplicacion/datos/muebles.php");
 
+// Ruta de navegación de la página
+$ubicacion = [
+    "Inicio" => "/index.php",
+    "Tienda" => "./index.php",
+    "Modificar mueble" => "./modificarMueble.php"
+];
+
 // ==========================================================
 // CONTROLADOR
 // ==========================================================
@@ -18,15 +25,31 @@ $mueble = null;
 // Para saber que mueble del array estamos usando en el momento
 $indice = 0;
 
-// Si el mueble ha llegado desde el formulario:
-if (isset($_POST["mueble"])) { // name del select
+// Si el mueble ha llegado por la URL:
+if (isset($_GET["mueble"])) { // mueble es el parámetro de la URL
+
+    // Asigno el valor de la URL a la variable del indice, convertido a entero
+    $indice = (int) $_GET["mueble"];
+
+    // Si el mueble ha llegado desde el formulario:
+} else if (isset($_POST["muebleOculto"])) { // muebleOculto es el name del campo oculto (hidden)
 
     // Asigno el valor del formulario a la variable del indice, convertido a entero
-    $indice = (int) $_POST["mueble"];
-
-    // Guardamos el mueble seleccionado
-    $mueble = $muebles[$indice];
+    $indice = (int) $_POST["muebleOculto"];
 }
+
+// Si el mueble no existe en el array
+if (!isset($muebles[$indice])) {
+
+    // Vuelvo a la página principal
+    header("Location: index.php");
+
+    // Paro la ejecución
+    exit;
+}
+
+// Guardamos el mueble seleccionado
+$mueble = $muebles[$indice];
 
 // Aqui dentro van todos las propiedades
 $propiedades = [];
@@ -46,7 +69,7 @@ $datos = [
     "nombre" => $mueble->getNombre(),
     "fabricante" => $mueble->getFabricante(),
     "pais" => $mueble->getPais(),
-    "año" => $mueble->getAnio(),
+    "anio" => $mueble->getAnio(),
     "fechaInicio" => $mueble->getFechaIniVenta(),
     "fechaFin" => $mueble->getFechaFinVenta(),
     "precio" => $mueble->getPrecio(),
@@ -125,10 +148,17 @@ if (isset($_POST["guardar"])) { // name del botón
     $precio = $datos["precio"];
 
     // Si el precio ha llegado desde el formulario:
-    if (isset($_POST["precio"]) && is_numeric($_POST["precio"])) {
+    if (isset($_POST["precio"])) {
 
-        // Asigno el valor del formulario a la variable para el precio
-        $precio = (float) $_POST["precio"];
+        // Si el precio es un número:
+        if (is_numeric($_POST["precio"])) {
+
+            // Asigno el valor del formulario a la variable para el precio
+            $precio = (float) $_POST["precio"];
+        } else {
+            // Si no muestro un error
+            $errores["precio"][] = "El precio no es un número";
+        }
     }
 
     // Si vale menos de 30 dará error
@@ -141,11 +171,213 @@ if (isset($_POST["guardar"])) { // name del botón
 
     // ------------------------------------------------------
 
+    // Guardo la clase del mueble (MuebleReciclado o MuebleTradicional)
+    $clase = get_class($mueble);
+
+    // Creo una instancia auxiliar del mismo tipo
+    $auxiliar = new $clase("AUXILIAR");
+
+    // ------------------------------------------------------
+    // Año
+    // ------------------------------------------------------
+
+    // Inicializamos el año con el valor inicial del array de datos
+    $anio = $datos["anio"];
+
+    // Si el año ha llegado desde el formulario:
+    if (isset($_POST["anio"])) {
+
+        // Asigno el valor del formulario a la variable para el anio
+        $anio = (int) $_POST["anio"];
+
+        // Si el set no lo acepta, dará error
+        if (!$auxiliar->setAnio($anio)) {
+            $errores["anio"][] = "El año debe ser un número entre 2020 y el año actual";
+        }
+    }
+
+    // Guardamos el año para mostrarlo en el formulario
+    $datos["anio"] = $anio;
+
+    // ------------------------------------------------------
+    // Fecha inicio
+    // ------------------------------------------------------
+
+    // Inicializamos la fecha de inicio con el valor inicial del array de datos
+    $fechaInicio = $datos["fechaInicio"];
+
+    // Si la fecha de inicio ha llegado desde el formulario:
+    if (isset($_POST["fechaInicio"])) {
+
+        // Asigno el valor del formulario a la variable para la fecha de inicio
+        $fechaInicio = $_POST["fechaInicio"];
+
+        // Si el set no lo acepta, dará error
+        if (!$auxiliar->setFechaIniVenta($fechaInicio)) {
+            $errores["fechaInicio"][] = "La fecha no es válida o es anterior al uno de enero del año de inicio de fabricación";
+        }
+    }
+
+    // Guardamos la fecha de inicio para mostrarla en el formulario
+    $datos["fechaInicio"] = $fechaInicio;
+
+    // ------------------------------------------------------
+    // Fecha fin
+    // ------------------------------------------------------
+
+    // Inicializamos la fecha de fin con el valor inicial del array de datos
+    $fechaFin = $datos["fechaFin"];
+
+    // Si la fecha de fin ha llegado desde el formulario:
+    if (isset($_POST["fechaFin"])) {
+
+        // Asigno el valor del formulario a la variable para la fecha de fin
+        $fechaFin = $_POST["fechaFin"];
+
+        // Si el set no lo acepta, dará error
+        if (!$auxiliar->setFechaFinVenta($fechaFin)) {
+            $errores["fechaFin"][] = "La fecha no es válida o es anterior a la fecha inicial de venta";
+        }
+    }
+
+    // Guardamos la fecha de fin para mostrarla en el formulario
+    $datos["fechaFin"] = $fechaFin;
+
+    // ------------------------------------------------------
+    // Fabricante
+    // ------------------------------------------------------
+
+    // Inicializamos el fabricante con el valor inicial del array de datos
+    $fabricante = $datos["fabricante"];
+
+    // Si el fabricante ha llegado desde el formulario:
+    if (isset($_POST["fabricante"])) {
+
+        // Asigno el valor del formulario a la variable para el fabricante
+        $fabricante = $_POST["fabricante"];
+
+        // Si el set no lo acepta, dará error
+        if (!$auxiliar->setFabricante($fabricante)) {
+            $errores["fabricante"][] = "El fabricante no es válido";
+        }
+    }
+
+    // Guardamos el fabricante para mostrarlo en el formulario
+    $datos["fabricante"] = $fabricante;
+
+    // ------------------------------------------------------
+    // Propiedades adicionales: Porcentaje reciclado
+    // ------------------------------------------------------
+
+    // Si el mueble es reciclado:
+    if ($mueble instanceof MuebleReciclado) {
+
+        // Inicializamos el porcentaje con el valor inicial del array de datos
+        // PorcentajeReciclado sale de damePropiedadesAdicionales()
+        $porcentajeReciclado = $datos["propiedades"]["PorcentajeReciclado"];
+
+        // Si el porcentaje ha llegado desde el formulario:
+        if (isset($_POST["PorcentajeReciclado"])) {
+
+            // Si el porcentaje es un número:
+            if (is_numeric($_POST["PorcentajeReciclado"])) {
+
+                // Asigno el valor del formulario a la variable para el porcentaje
+                $porcentajeReciclado = (int) $_POST["PorcentajeReciclado"];
+            } else {
+                // Si no es un número, dará error
+                $errores["PorcentajeReciclado"][] = "El porcentaje no es un número";
+            }
+        }
+
+        // Si no está entre 0 y 100 dará error
+        if ($porcentajeReciclado < 0 || $porcentajeReciclado > 100) {
+            $errores["PorcentajeReciclado"][] = "El porcentaje debe estar entre 0 y 100";
+        }
+
+        // Guardamos el porcentaje para mostrarlo en el formulario
+        $datos["propiedades"]["PorcentajeReciclado"] = $porcentajeReciclado;
+    }
+
+    // ------------------------------------------------------
+    // Propiedades adicionales: Peso
+    // ------------------------------------------------------
+
+    // Si el mueble es tradicional:
+    if ($mueble instanceof MuebleTradicional) {
+
+        // Inicializamos el peso con el valor inicial del array de datos
+        // Peso sale de damePropiedadesAdicionales()
+        $peso = $datos["propiedades"]["Peso"];
+
+        // Si el peso ha llegado desde el formulario:
+        if (isset($_POST["Peso"])) {
+
+            // Si el peso es un número:
+            if (is_numeric($_POST["Peso"])) {
+
+                // Asigno el valor del formulario a la variable para el peso
+                $peso = (float) $_POST["Peso"];
+            } else {
+                // Si no es un número, dará error
+                $errores["Peso"][] = "El peso no es un número";
+            }
+        }
+
+        // Si no está entre 15 y 300 dará error
+        if ($peso < 15 || $peso > 300) {
+            $errores["Peso"][] = "El peso debe estar entre 15 y 300";
+        }
+
+        // Guardamos el peso para mostrarlo en el formulario
+        $datos["propiedades"]["Peso"] = $peso;
+
+        // ------------------------------------------------------
+        // Propiedades adicionales: Serie
+        // ------------------------------------------------------
+
+        // Inicializamos la serie con el valor inicial del array de datos
+        // Serie sale de damePropiedadesAdicionales()
+        $serie = $datos["propiedades"]["Serie"];
+
+        // Si la serie ha llegado desde el formulario:
+        if (isset($_POST["Serie"])) {
+            // Asigno el valor del formulario a la variable para la serie
+            $serie = $_POST["Serie"];
+            // Le quito los espacios de los extremos
+            $serie = trim($serie);
+        }
+
+        // Guardamos la serie para mostrarla en el formulario
+        $datos["propiedades"]["Serie"] = $serie;
+    }
+
+    // ------------------------------------------------------
+
     // Si no hay ningún error:
     if (!$errores) {
 
         // Actualizamos el mueble con los datos nuevos
         $mueble->setNombre($datos["nombre"]);
+        $mueble->setFabricante($datos["fabricante"]);
+        $mueble->setPais($datos["pais"]);
+        $mueble->setAnio($datos["anio"]);
+        $mueble->setFechaIniVenta($datos["fechaInicio"]);
+        $mueble->setFechaFinVenta($datos["fechaFin"]);
+        $mueble->setPrecio($datos["precio"]);
+
+        // Si el mueble es tradicional:
+        if ($mueble instanceof MuebleTradicional) {
+            // Actualizo las propiedades del mueble con los datos nuevos
+            $mueble->setPeso($datos["propiedades"]["Peso"]);
+            $mueble->setSerie($datos["propiedades"]["Serie"]);
+        }
+
+        // Si el mueble es reciclado:
+        if ($mueble instanceof MuebleReciclado) {
+            // Actualizo las propiedades del mueble con los datos nuevos
+            $mueble->setPorcentajeReciclado($datos["propiedades"]["PorcentajeReciclado"]);
+        }
 
         // Mostramos el resumen en lugar del formulario
         $mostrarResumen = true;
@@ -162,7 +394,7 @@ cabecera();
 finCabecera();
 
 // Cuerpo de la página
-inicioCuerpo("Tienda");
+inicioCuerpo("Tienda", $ubicacion);
 cuerpo($datos, $errores, $indice, $mostrarResumen);
 finCuerpo();
 
@@ -210,13 +442,13 @@ function formulario(array $datos, array $errores, int $indice)
             foreach ($valor as $error)
                 echo "$clave => $error<br>" . PHP_EOL;
         }
-        echo "</div>";
+        echo "</div><br>";
     }
 ?>
     <form action="" method="post">
 
         <!-- Información oculta -->
-        <input type="hidden" name="mueble" value="<?php echo $indice; ?>">
+        <input type="hidden" name="muebleOculto" value="<?php echo $indice; ?>">
 
         <label for="nombre">Nombre: </label>
         <input type="text" name="nombre" id="nombre" maxlength="40"
@@ -230,9 +462,9 @@ function formulario(array $datos, array $errores, int $indice)
         <input type="text" name="pais" id="pais" maxlength="20"
             value="<?php echo $datos["pais"]; ?>">
 
-        <br><label for="año">Año: </label>
-        <input type="text" name="año" id="año"
-            value="<?php echo $datos["año"]; ?>">
+        <br><label for="anio">Año: </label>
+        <input type="text" name="anio" id="anio"
+            value="<?php echo $datos["anio"]; ?>">
 
         <br><label for="fechaInicio">Fecha de inicio: </label>
         <input type="text" name="fechaInicio" id="fechaInicio"
@@ -246,6 +478,7 @@ function formulario(array $datos, array $errores, int $indice)
         <input type="text" name="precio" id="precio"
             value="<?php echo $datos["precio"]; ?>">
 
+        <?php /*
         <br><label for="caracteristicas">Caracteristicas: </label>
         <?php
         foreach ($datos["caracteristicas"] as $caracteristica => $valor) {
@@ -256,6 +489,7 @@ function formulario(array $datos, array $errores, int $indice)
         <?php
         }
         ?>
+        */ ?>
 
         <br><label for="propiedades">Propiedades adicionales: </label>
         <?php
@@ -290,19 +524,22 @@ function resumen(array $datos)
     echo "Nombre: " . $datos["nombre"] . "<br>";
     echo "Fabricante: " . $datos["fabricante"] . "<br>";
     echo "Pais: " . $datos["pais"] . "<br>";
-    echo "Año: " . $datos["año"] . "<br>";
+    echo "Año: " . $datos["anio"] . "<br>";
     echo "Fecha de inicio de venta: " . $datos["fechaInicio"] . "<br>";
     echo "Fecha de fin de venta: " . $datos["fechaFin"] . "<br>";
     echo "Precio: " . $datos["precio"] . "<br>";
 
-    echo "<br>Caracteristicas:<br>";
-    foreach ($datos["caracteristicas"] as $caracteristica => $valor) {
-        echo $caracteristica . ": " .
-            (($valor === true || $valor === false) ? ($valor ? "Si" : "No") : $valor);
-        echo "<br>";
-    }
+    // echo "<br>Caracteristicas:<br>";
+    // foreach ($datos["caracteristicas"] as $caracteristica => $valor) {
+
+    //     echo $caracteristica . ": " .
+    //         (($valor === true || $valor === false) ? ($valor ? "Si" : "No") : $valor);
+    //     echo "<br>";
+    // }
 
     echo "<br>Propiedades adicionales: <br>";
+
+    // Mostramos cada propiedad adicional con su valor
     foreach ($datos["propiedades"] as $propiedad => $valor) {
         echo $propiedad . ": " . $valor;
         echo "<br>";

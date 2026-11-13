@@ -130,6 +130,12 @@ a:hover {
     color: var(--texto);
 }
 
+.tabla th,
+.tabla td {
+    text-align: center;
+    padding: 8px 12px;
+}
+
 /* ============ FORMULARIOS ============ */
 .for_texto {
     border: thin solid var(--borde);

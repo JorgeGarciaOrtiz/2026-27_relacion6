@@ -4,6 +4,12 @@
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 include_once(RUTABASE . "/aplicacion/datos/muebles.php");
 
+// Ruta de navegación de la página
+$ubicacion = [
+    "Inicio" => "/index.php",
+    "Tienda" => "./index.php"
+];
+
 // ==========================================================
 // CONTROLADOR
 // ==========================================================
@@ -19,13 +25,13 @@ $indice = 0;
 if ($_POST) {
 
     // Si el mueble ha llegado desde el formulario:
-    if (isset($_POST["mueble"])) {
+    if (isset($_POST["selectMueble"])) {
 
         // Asigno el valor del formulario a la variable del indice, convertido a entero
-        $indice = (int) $_POST["mueble"];
+        $indice = (int) $_POST["selectMueble"];
 
         // Si se ha pulsado el botón Mostrar mueble
-        if (isset($_POST["selectMostrar"])) {
+        if (isset($_POST["inputMostrar"])) {
 
             // Guardamos el mueble seleccionado
             $muebleSeleccionado = $muebles[$indice];
@@ -33,9 +39,11 @@ if ($_POST) {
     }
 
     // Si se ha pulsado el botón Modificar mueble
-    if (isset($_POST["selectModificar"])) {
+    if (isset($_POST["inputModificar"])) {
 
         // Redirijo a la página de modificar pasando el índice por la URL
+        // modificarMueble.php: la página de destino
+        // ?mueble=$indice: le paso el índice del mueble por la URL (en $_GET["mueble"])
         header("Location: modificarMueble.php?mueble=$indice");
 
         // Paro la ejecución
@@ -48,12 +56,12 @@ if ($_POST) {
 // ==========================================================
 
 // Cabecera de la página
-inicioCabecera("TIENDA");
+inicioCabecera("Tienda");
 cabecera();
 finCabecera();
 
 // Cuerpo de la página
-inicioCuerpo("Tienda");
+inicioCuerpo("Tienda", $ubicacion);
 cuerpo($muebleSeleccionado, $indice, $muebles);
 finCuerpo();
 
@@ -69,6 +77,7 @@ function cabecera() {}
  *
  * @param MuebleBase|null $muebleSeleccionado Mueble elegido por el usuario (null si no hay ninguno)
  * @param integer $indice Posición en el array del mueble elegido (0 si no hay ninguno)
+ * @param array $muebles Array con todos los muebles de la tienda
  * @return void
  */
 function cuerpo($muebleSeleccionado, int $indice, array $muebles)
@@ -106,11 +115,11 @@ function cuerpo($muebleSeleccionado, int $indice, array $muebles)
             <legend>Selecciona un mueble</legend>
 
             <!-- Botones -->
-            <input type="submit" name="selectMostrar" value="Mostrar mueble">
-            <input type="submit" name="selectModificar" value="Modificar mueble"
+            <input type="submit" name="inputMostrar" value="Mostrar mueble">
+            <input type="submit" name="inputModificar" value="Modificar mueble"
                 formtarget="_blank">
 
-            <br><select name="mueble">
+            <br><select name="selectMueble">
                 <!-- Recorro los datos que necesito de cada mueble -->
                 <?php for ($i = 1; $i < count($muebles) + 1; $i++) { ?>
                     <option value="<?php echo $i ?>" <?php if ($indice == $i) { ?> selected <?php } ?>>
