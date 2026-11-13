@@ -59,6 +59,10 @@ $errores = [];
 
 if (isset($_POST["guardar"])) { // name del botón
 
+    // ------------------------------------------------------
+    // Nombre
+    // ------------------------------------------------------
+
     // Inicializamos el nombre con el valor inicial del array de datos
     $nombre = $datos["nombre"];
 
@@ -87,6 +91,53 @@ if (isset($_POST["guardar"])) { // name del botón
 
     // Guardamos el nombre para mostrarlo en el formulario
     $datos["nombre"] = $nombre;
+
+    // ------------------------------------------------------
+    // Pais
+    // ------------------------------------------------------
+
+    // Inicializamos el pais con el valor inicial del array de datos
+    $pais = $datos["pais"];
+
+    // Si el pais ha llegado desde el formulario:
+    if (isset($_POST["pais"])) {
+
+        // Asigno el valor del formulario a la variable para el pais
+        $pais = $_POST["pais"];
+
+        // Le quito los espacios de los extremos
+        $pais = trim($pais);
+    }
+
+    // Si ocupa más de 20 caracteres dara error
+    if (mb_strlen($pais, 'UTF-8') > 20) {
+        $errores["pais"][] = "El pais no puede ocupar más de 20 caracteres";
+    }
+
+    // Guardamos el pais para mostrarlo en el formulario
+    $datos["pais"] = $pais;
+
+    // ------------------------------------------------------
+    // Precio
+    // ------------------------------------------------------
+
+    // Inicializamos el precio con el valor inicial del array de datos
+    $precio = $datos["precio"];
+
+    // Si el precio ha llegado desde el formulario:
+    if (isset($_POST["precio"]) && is_numeric($_POST["precio"])) {
+
+        // Asigno el valor del formulario a la variable para el precio
+        $precio = (float) $_POST["precio"];
+    }
+
+    // Si vale menos de 30 dará error
+    if ($precio < 30) {
+        $errores["precio"][] = "El precio no puede ser menor de 30";
+    }
+
+    // Guardamos el precio para mostrarlo en el formulario
+    $datos["precio"] = $precio;
 
     // ------------------------------------------------------
 
@@ -164,6 +215,7 @@ function formulario(array $datos, array $errores, int $indice)
 ?>
     <form action="" method="post">
 
+        <!-- Información oculta -->
         <input type="hidden" name="mueble" value="<?php echo $indice; ?>">
 
         <label for="nombre">Nombre: </label>

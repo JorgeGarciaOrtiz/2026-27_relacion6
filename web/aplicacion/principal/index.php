@@ -25,11 +25,21 @@ if ($_POST) {
         $indice = (int) $_POST["mueble"];
 
         // Si se ha pulsado el botón Mostrar mueble
-        if ($_POST["accion"] === "Mostrar mueble") {
+        if (isset($_POST["selectMostrar"])) {
 
             // Guardamos el mueble seleccionado
             $muebleSeleccionado = $muebles[$indice];
         }
+    }
+
+    // Si se ha pulsado el botón Modificar mueble
+    if (isset($_POST["selectModificar"])) {
+
+        // Redirijo a la página de modificar pasando el índice por la URL
+        header("Location: modificarMueble.php?mueble=$indice");
+
+        // Paro la ejecución
+        exit;
     }
 }
 
@@ -44,7 +54,7 @@ finCabecera();
 
 // Cuerpo de la página
 inicioCuerpo("Tienda");
-cuerpo($muebleSeleccionado, $indice);
+cuerpo($muebleSeleccionado, $indice, $muebles);
 finCuerpo();
 
 // ==========================================================
@@ -61,10 +71,8 @@ function cabecera() {}
  * @param integer $indice Posición en el array del mueble elegido (0 si no hay ninguno)
  * @return void
  */
-function cuerpo(?MuebleBase $muebleSeleccionado, int $indice)
+function cuerpo($muebleSeleccionado, int $indice, array $muebles)
 {
-    // Hago visible el array de muebles dentro de esta función
-    global $muebles;
 ?>
     <!-- Tabla con los muebles -->
     <table class="tabla">
@@ -98,9 +106,8 @@ function cuerpo(?MuebleBase $muebleSeleccionado, int $indice)
             <legend>Selecciona un mueble</legend>
 
             <!-- Botones -->
-            <input type="submit" name="accion" value="Mostrar mueble">
-            <input type="submit" name="accion" value="Modificar mueble"
-                formaction="modificarMueble.php"
+            <input type="submit" name="selectMostrar" value="Mostrar mueble">
+            <input type="submit" name="selectModificar" value="Modificar mueble"
                 formtarget="_blank">
 
             <br><select name="mueble">
